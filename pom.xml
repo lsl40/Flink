@@ -50,7 +50,6 @@
     </properties>
 
 
-    <dependencyManagement>
         <dependencies>
 
             <!-- flink-start-->
@@ -494,7 +493,6 @@
             <!--            </dependency>-->
         </dependencies>
 
-    </dependencyManagement>
 
 
     <build>
