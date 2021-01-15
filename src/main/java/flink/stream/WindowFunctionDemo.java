@@ -1,4 +1,4 @@
-package flink;
+package flink.stream;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;

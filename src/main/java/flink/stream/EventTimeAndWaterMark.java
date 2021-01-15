@@ -1,4 +1,4 @@
-package flink;
+package flink.stream;
 
 import flink.pojo.Test;
 import org.apache.flink.api.common.functions.MapFunction;
