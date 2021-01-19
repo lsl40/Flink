@@ -19,6 +19,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -28,6 +29,7 @@ import java.util.Map;
  **/
 public class StateTest {
     public static void main(String[] args) throws Exception {
+
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.setParallelism(1);
@@ -37,6 +39,7 @@ public class StateTest {
         SingleOutputStreamOperator<Tuple3<String, Integer, String>> map = stream.map(new MapFunction<String, Tuple3<String, Integer, String>>() {
             @Override
             public Tuple3<String, Integer, String> map(String s) throws Exception {
+
                 String[] split = s.split(",");
                 return new Tuple3<>(split[0], Integer.valueOf(split[1]), split[2]);
             }
@@ -71,8 +74,7 @@ public class StateTest {
 
         private ValueState<Integer> keyState;
         private ListState<String> listState;
-        private MapState<String, Integer> mapState;
-        ArrayList<String> list = new ArrayList<String>();
+        private MapState<String, String> mapState;
 
 
         @Override
@@ -90,12 +92,13 @@ public class StateTest {
 
             ValueStateDescriptor valueStateDescriptor = new ValueStateDescriptor("key-state", Integer.class);
             ListStateDescriptor<String> stringListStateDescriptor = new ListStateDescriptor<>("list-state", String.class);
-            MapStateDescriptor<String, Integer> stringIntegerMapStateDescriptor = new MapStateDescriptor<>("map-state", String.class, Integer.class);
+            MapStateDescriptor<String, String> stringIntegerMapStateDescriptor = new MapStateDescriptor<>("map-state", String.class, String.class);
 
 //            valueStateDescriptor.enableTimeToLive(build);
             keyState = getRuntimeContext().getState(valueStateDescriptor);
             listState = getRuntimeContext().getListState(stringListStateDescriptor);
-//            MapState<String, Integer> mapState = getRuntimeContext().getMapState(stringIntegerMapStateDescriptor);
+            mapState = getRuntimeContext().getMapState(stringIntegerMapStateDescriptor);
+//            getRuntimeContext().getReducingState()
         }
 
         @Override
@@ -103,13 +106,33 @@ public class StateTest {
 
 //            mapState.put(tuple3.f0.toString(),Integer.valueOf(tuple3.f1.toString()));
 
-//            Integer integer = mapState.get(tuple3.f0.toString().toString());
+
+            String s1 = mapState.get(tuple3.f0.toString());
+            String s2 = mapState.get(tuple3.f1.toString());
+
+            mapState.put(tuple3.f0.toString(),tuple3.f1.toString());
+            mapState.put(tuple3.f1.toString(),tuple3.f2.toString());
+
+
+//            System.out.println(s1+"----------"+s2);
 
 //            System.out.println(integer+"-----------------map");
 
             Integer value = keyState.value();
-            list.add(tuple3.f0.toString());
-            listState.update(list);
+
+            listState.add(tuple3.f0.toString()+tuple3.f1.toString()+tuple3.f2.toString());
+
+            Iterable<String> ls = listState.get();
+
+            Iterator<String> iterator = ls.iterator();
+
+            while (iterator.hasNext()){
+                String next = iterator.next();
+                System.out.println(next+"=========liststate");
+            }
+
+
+
             if(value == null){
                 value = 1;
             }else{
@@ -117,9 +140,9 @@ public class StateTest {
             }
             keyState.update(value);
             Iterable<String> strings = listState.get();
-            for (String string : strings) {
-                System.out.println(string+"-----------------list");
-            }
+//            for (String string : strings) {
+//                System.out.println(string+"-----------------list");
+//            }
             return value;
         }
     }
