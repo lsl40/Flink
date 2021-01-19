@@ -108,6 +108,10 @@ public class ProcessOnTimer {
         }
         @Override
         public void onTimer(long timestamp, OnTimerContext ctx, Collector<String> out) throws Exception {
+//            ========定时触发条件
+//            利用 timestamp - getCurrentProcessingTime()计算设置的 TTL 时间和当前时间的差值，
+//            然后取这个差值和 0 这两者中的较大值，然后 +1 作为定时器调度的延迟时间，正是这一步导致：
+//            即使设置的 TTL 时间是历史时间，也会作为当前时间来触发调度。
 
             String currentKey = ctx.getCurrentKey();
 
