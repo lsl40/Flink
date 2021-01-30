@@ -1,6 +1,7 @@
 package flink.table;
 
 import flink.pojo.Test;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.Table;
@@ -19,8 +20,6 @@ import org.apache.flink.types.Row;
  **/
 public class ReadExternalFile {
 
-    private static ConnectTableDescriptor connectTableDescriptor;
-    private static ConnectTableDescriptor schema;
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -43,21 +42,43 @@ public class ReadExternalFile {
 
 
 //        table API
-        Table filter = input.select("id,count,time").filter("id='001'");
-//        Table group = input.groupBy("id").select("id,`count`");xxx
+//        Table filter = input.select("id,count,time").filter("id='001'");
+//        Table group = input.groupBy("id").select("id,count.count");
 
 
 
 //        sql
 
-        Table table = tableEnv.sqlQuery("select id,`count`,`time` from input where id = '002'");
-        Table tableGroup = tableEnv.sqlQuery("select id,count(id),sum(`count`) from input group by id");
+        Table table = tableEnv.sqlQuery("select id,`count`,`time` from input where id = '001'");
+//        Table tableGroup = tableEnv.sqlQuery("select id,count(id),sum(`count`) from input group by id");
 
 //        tableEnv.toAppendStream(filter,Row.class).print("filter");
-//        tableEnv.toAppendStream(table,Row.class).print("table");
-        tableEnv.toRetractStream(tableGroup,Row.class).print("tableGroup");
-//        tableEnv.toAppendStream(group,Row.class).print("group");xxx
+//        DataStream<Row> rowDataStream = tableEnv.toAppendStream(table, Row.class);
+//        rowDataStream.print();
+//        rowDataStream.writeAsText("D:\\workspace\\test\\Flink\\src\\main\\tmp\\out.txt");
+//        rowDataStream.writeAsCsv("D:\\workspace\\test\\Flink\\src\\main\\tmp\\out.csv", org.apache.flink.core.fs.FileSystem.WriteMode.OVERWRITE,",","\n");
+//        tableEnv.toRetractStream(tableGroup,Row.class).print("tableGroup");
+//        tableEnv.toRetractStream(group,Row.class).print("group");
 
-        env.execute();
+
+//        创建输出表TODO
+        String outFile = "D:\\workspace\\test\\Flink\\src\\main\\tmp\\out.txt";
+        tableEnv.connect(new FileSystem().path(outFile))
+                .withFormat(new Csv())
+                .withSchema(new Schema()
+                        .field("id", DataTypes.STRING())
+                        .field("count",DataTypes.BIGINT())
+                        .field("time",DataTypes.STRING()))
+                .createTemporaryTable("outtable");
+
+//        Table outtable = tableEnv.from("outtable");xxxxxxxxx
+
+
+        table.insertInto("outtable");
+
+        tableEnv.execute("");
     }
+
+
+
 }
