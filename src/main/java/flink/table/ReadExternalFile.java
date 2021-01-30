@@ -74,9 +74,14 @@ public class ReadExternalFile {
 //        Table outtable = tableEnv.from("outtable");xxxxxxxxx
 
 
-        table.insertInto("outtable");
+//        table.insertInto("outtable");
+        table.executeInsert("outtable");
 
-        tableEnv.execute("");
+        tableEnv.execute("1");
+
+
+
+//        tableEnv.executeSql("INSERT INTO RubberOrders SELECT product, amount FROM Orders WHERE product LIKE '%Rubber%'");
     }
 
 
