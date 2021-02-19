@@ -4,6 +4,7 @@ import flink.pojo.Test;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.DataTypes;
+import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.descriptors.ConnectTableDescriptor;
@@ -34,7 +35,9 @@ public class ReadExternalFile {
                 .withSchema(new Schema()
                         .field("id", DataTypes.STRING())
                         .field("count",DataTypes.BIGINT())
-                        .field("time",DataTypes.STRING()))
+                        .field("time",DataTypes.STRING())
+//                        .field("pt",DataTypes.TIMESTAMP(3)).proctime()
+                )
                 .createTemporaryTable("input");
 
         Table input = tableEnv.from("input");
@@ -50,6 +53,8 @@ public class ReadExternalFile {
 //        sql
 
         Table table = tableEnv.sqlQuery("select id,`count`,`time` from input where id = '001'");
+        DataStream<Row> rowDataStream = tableEnv.toAppendStream(table, Row.class);
+        rowDataStream.print();
 //        Table tableGroup = tableEnv.sqlQuery("select id,count(id),sum(`count`) from input group by id");
 
 //        tableEnv.toAppendStream(filter,Row.class).print("filter");
@@ -68,16 +73,17 @@ public class ReadExternalFile {
                 .withSchema(new Schema()
                         .field("id", DataTypes.STRING())
                         .field("count",DataTypes.BIGINT())
-                        .field("time",DataTypes.STRING()))
-                .createTemporaryTable("outtable");
+                        .field("time",DataTypes.STRING())
+//                        .field("pt",DataTypes.STRING())
+                ).createTemporaryTable("outtable");
 
 //        Table outtable = tableEnv.from("outtable");xxxxxxxxx
 
 
-//        table.insertInto("outtable");
+        table.insertInto("outtable");
         table.executeInsert("outtable");
-
-        tableEnv.execute("1");
+//        env.execute();
+//        tableEnv.execute("1");
 
 
 
